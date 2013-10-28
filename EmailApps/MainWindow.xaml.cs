@@ -39,14 +39,12 @@ namespace EmailApps
 
         private void btnProcess_Click(object sender, RoutedEventArgs e)
         {
-
-            
-
             string url=txtInputURL.Text;
             if (!url.Contains("http"))
             {
                 url = "http://" + url;
             }
+            
             ExtractLink(url);
             txtInputURL.Text = "";
         }

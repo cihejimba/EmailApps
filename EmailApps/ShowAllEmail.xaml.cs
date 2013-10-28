@@ -34,8 +34,15 @@ namespace EmailApps
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            DataRow[] dtrow = dt.Select("Domain='"+ddlEmailType.SelectedValue.ToString()+"'");
-            dataGrid1.ItemsSource = dtrow.CopyToDataTable().DefaultView;
+            if (ddlEmailType.SelectedIndex != -1)
+            {
+                DataRow[] dtrow = dt.Select("Domain='" + ddlEmailType.SelectedValue.ToString() + "'");
+                dataGrid1.ItemsSource = dtrow.CopyToDataTable().DefaultView;
+            }
+            else
+            {
+                MessageBox.Show("Select any domain name first");
+            }
             
 
         }
