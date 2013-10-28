@@ -17,14 +17,19 @@ using System.Data;
 using System.ComponentModel;
 using System.Data.SqlServerCe;
 using System.Data.SqlClient;
+using System.Threading;
 
 namespace EmailApps
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+
     public partial class MainWindow:Window
     {
+        private Thread threadParse;
+        bool ThreadsRunning;
+        Queue<string> q = new Queue<string>();
         DataTable dt = new DataTable();
         ConnectionClass con = new ConnectionClass();
        
@@ -39,14 +44,39 @@ namespace EmailApps
 
         private void btnProcess_Click(object sender, RoutedEventArgs e)
         {
+            this.btnProcess.IsEnabled = false;    
+
+            //if (threadParse == null || threadParse.ThreadState != ThreadState.Suspended)
+            //{
+            //    threadParse = new Thread(new ThreadStart(RunParser));
+            //    threadParse.Start();
+            //}           
+
             string url=txtInputURL.Text;
+          
             if (!url.Contains("http"))
             {
                 url = "http://" + url;
+               
             }
-            
-            ExtractLink(url);
+            q.Enqueue(url);
+
+            for (int i = 0; i< q.Count;i++ )
+            {
+                string extracturl = q.Dequeue();
+
+                if (!extracturl.Contains("http"))
+                {
+                    extracturl = "http://" + url;
+                   // q.Enqueue(extracturl);
+                }                
+                ExtractLink(extracturl);
+            }
             txtInputURL.Text = "";
+        }
+        void RunParser()
+        {
+           
         }
         private void btnShowAllData_Click(object sender, RoutedEventArgs e)
         {
@@ -68,7 +98,13 @@ namespace EmailApps
 
         private List<string> ExtractEmail(string url, System.Net.WebClient wc)
         {
-            string text = wc.DownloadString(url);
+            string text = "";
+            try
+            {
+                 text = wc.DownloadString(url);
+            }
+            catch (Exception ex)
+            { }
             const string MatchEmailPattern =
           @"(([\w-]+\.)+[\w-]+|([a-zA-Z]{1}|[\w-]{2,}))@"
           + @"((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\."
@@ -98,6 +134,33 @@ namespace EmailApps
                 // dt.AcceptChanges();
                 string insertQuery = @"INSERT INTO tbl_EmailAddressInfo ([EmailAddress], [Domain],[User]) VALUES ('" + match.ToString() + "','" + hostAddress + "','" + user + "')";
                 con.ExecuteQuery(insertQuery);
+            }
+
+            const string MatchURLPattern = @"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*";
+            Regex rxURL = new Regex(MatchURLPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            // Find matches.
+            MatchCollection matchesURL = rxURL.Matches(text);
+            // Report the number of matches found.
+    
+            // Report on each match.
+            List<string> listOfURL = new List<string>();
+
+
+            foreach (Match match in matchesURL)
+            {
+                //listOfEmail.Add(match.ToString());
+                //MailAddress addr = new MailAddress(match.ToString());
+                //string hostAddress = addr.Host;
+                //string user = addr.User;
+                q.Enqueue(match.ToString());
+
+                //DataRow dr=dt.NewRow();
+                //dr["EmailAddress"] = match.ToString();
+                //dr["Domain"] = hostAddress;
+                //dr["User"] = user;
+                // dt.Rows.Add(dr);
+                // dt.AcceptChanges();
+
             }
             return listOfEmail;
         }
