@@ -32,6 +32,7 @@ namespace EmailApps
         Queue<string> q = new Queue<string>();
         DataTable dt = new DataTable();
         ConnectionClass con = new ConnectionClass();
+        int FirstTime = 0;
        
         public MainWindow()
         {
@@ -60,12 +61,13 @@ namespace EmailApps
                
             }
             q.Enqueue(url);
-
+           
             for (int i = 0; i< q.Count;i++ )
             {
+                FirstTime++;
                 string extracturl = q.Dequeue();
 
-                if (!extracturl.Contains("http"))
+                if (!extracturl.Contains("http://")||!extracturl.Contains("https://"))
                 {
                     extracturl = "http://" + url;
                    // q.Enqueue(extracturl);
@@ -136,33 +138,45 @@ namespace EmailApps
                 con.ExecuteQuery(insertQuery);
             }
 
-            const string MatchURLPattern = @"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*";
-            Regex rxURL = new Regex(MatchURLPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            // Find matches.
-            MatchCollection matchesURL = rxURL.Matches(text);
-            // Report the number of matches found.
-    
-            // Report on each match.
-            List<string> listOfURL = new List<string>();
-
-
-            foreach (Match match in matchesURL)
-            {
-                //listOfEmail.Add(match.ToString());
-                //MailAddress addr = new MailAddress(match.ToString());
-                //string hostAddress = addr.Host;
-                //string user = addr.User;
-                q.Enqueue(match.ToString());
-
-                //DataRow dr=dt.NewRow();
-                //dr["EmailAddress"] = match.ToString();
-                //dr["Domain"] = hostAddress;
-                //dr["User"] = user;
-                // dt.Rows.Add(dr);
-                // dt.AcceptChanges();
-
-            }
+            URLExtract(text,FirstTime);
             return listOfEmail;
+        }
+
+        private void URLExtract(string text,int firsttime)
+        {
+            if (firsttime <= DeepControll.numberofTimeDeep)
+            {
+                const string MatchURLPattern = @"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*";
+                Regex rxURL = new Regex(MatchURLPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                // Find matches.
+                MatchCollection matchesURL = rxURL.Matches(text);
+                // Report the number of matches found.
+
+                // Report on each match.
+                List<string> listOfURL = new List<string>();
+
+
+                foreach (Match match in matchesURL)
+                {
+                    //listOfEmail.Add(match.ToString());
+                    //MailAddress addr = new MailAddress(match.ToString());
+                    //string hostAddress = addr.Host;
+                    //string user = addr.User;
+                    q.Enqueue(match.ToString());
+
+                    //DataRow dr=dt.NewRow();
+                    //dr["EmailAddress"] = match.ToString();
+                    //dr["Domain"] = hostAddress;
+                    //dr["User"] = user;
+                    // dt.Rows.Add(dr);
+                    // dt.AcceptChanges();
+
+                }
+            }
+            else
+            { 
+            
+            }
         }
         public DataTable ConvertToDataTable<T>(IList<T> data)
         {

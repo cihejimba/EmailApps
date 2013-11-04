@@ -74,6 +74,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DeepControll.cs" />
     <Compile Include="ShowAllEmail.xaml.cs">
       <DependentUpon>ShowAllEmail.xaml</DependentUpon>
     </Compile>
